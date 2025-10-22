@@ -11,68 +11,82 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import com.apptive.myapplication.ui.home.HomeTab
-import com.apptive.myapplication.ui.stats.StatsTab
-import com.apptive.myapplication.ui.timer.TimerTab
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
+import com.apptive.myapplication.navigation.PodomoroDestination
+import com.apptive.myapplication.navigation.PodomoroNavGraph
 
-enum class PodomoroTab(val label: String) {
-    Home("홈"),
-    Timer("타이머"),
-    Stats("통계")
-}
+private data class BottomNavItem(
+    val destination: PodomoroDestination,
+    val icon: ImageVector
+)
+
+private val bottomNavItems = listOf(
+    BottomNavItem(PodomoroDestination.Home, Icons.Filled.Home),
+    BottomNavItem(PodomoroDestination.Timer, Icons.Filled.Info),
+    BottomNavItem(PodomoroDestination.Stats, Icons.Filled.Info)
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
-@Composable
+@androidx.compose.runtime.Composable
 fun PodomoroApp() {
-    var selectedTab by rememberSaveable { mutableStateOf(PodomoroTab.Home) }
+    val navController = rememberNavController()
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentDestination = navBackStackEntry?.destination
+
+    val appBarTitle = bottomNavItems
+        .firstOrNull { item ->
+            currentDestination?.hierarchy?.any { it.route == item.destination.route } == true
+        }
+        ?.destination
+        ?.title
+        ?: PodomoroDestination.Home.title
 
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text(text = selectedTab.label) }
+                title = { Text(text = appBarTitle) }
             )
         },
         bottomBar = {
             NavigationBar {
-                PodomoroTab.entries.forEach { tab ->
-                    val selected = tab == selectedTab
+                bottomNavItems.forEach { item ->
+                    val selected = currentDestination
+                        ?.hierarchy
+                        ?.any { destination -> destination.route == item.destination.route } == true
+
                     NavigationBarItem(
                         selected = selected,
-                        onClick = { selectedTab = tab },
-                        icon = {
-                            when (tab) {
-                                PodomoroTab.Home -> Icon(
-                                    Icons.Filled.Home,
-                                    contentDescription = tab.label
-                                )
-
-                                PodomoroTab.Timer -> Icon(
-                                    Icons.Filled.Info,
-                                    contentDescription = tab.label
-                                )
-
-                                PodomoroTab.Stats -> Icon(
-                                    Icons.Filled.Info,
-                                    contentDescription = tab.label
-                                )
+                        onClick = {
+                            if (!selected) {
+                                navController.navigate(item.destination.route) {
+                                    popUpTo(navController.graph.startDestinationId) {
+                                        saveState = true
+                                    }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
                             }
                         },
-                        label = { Text(tab.label) }
+                        icon = {
+                            Icon(
+                                imageVector = item.icon,
+                                contentDescription = item.destination.title
+                            )
+                        },
+                        label = { Text(item.destination.title) }
                     )
                 }
             }
         }
     ) { innerPadding ->
-        when (selectedTab) {
-            PodomoroTab.Home -> HomeTab(modifier = Modifier.padding(innerPadding))
-            PodomoroTab.Timer -> TimerTab(modifier = Modifier.padding(innerPadding))
-            PodomoroTab.Stats -> StatsTab(modifier = Modifier.padding(innerPadding))
-        }
+        PodomoroNavGraph(
+            navController = navController,
+            modifier = Modifier.padding(innerPadding)
+        )
     }
 }
