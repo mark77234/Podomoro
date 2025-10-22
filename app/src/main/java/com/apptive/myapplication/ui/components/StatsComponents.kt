@@ -10,6 +10,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -88,10 +89,11 @@ fun SummaryCard(
                     fontWeight = FontWeight.Bold
                 )
                 LinearProgressIndicator(
-                    progress = dailyProgress.coerceIn(0f, 1f),
+                    progress = { dailyProgress.coerceIn(0f, 1f) },
                     modifier = Modifier.fillMaxWidth(),
                     color = contentColor,
-                    trackColor = contentColor.copy(alpha = 0.2f)
+                    trackColor = contentColor.copy(alpha = 0.2f),
+                    strokeCap = ProgressIndicatorDefaults.LinearStrokeCap,
                 )
                 Text(
                     text = "오늘 완료율 ${completionRatePercent}%",
@@ -218,10 +220,11 @@ fun HabitStatsCard(
                 )
             }
             LinearProgressIndicator(
-                progress = weeklyProgress,
+                progress = { weeklyProgress },
                 modifier = Modifier.fillMaxWidth(),
                 color = MaterialTheme.colorScheme.primary,
-                trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
+                strokeCap = ProgressIndicatorDefaults.LinearStrokeCap,
             )
             Text(
                 text = "이번 주 ${weeklyCount}회 / 목표 7회",

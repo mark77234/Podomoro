@@ -18,6 +18,7 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -103,21 +104,19 @@ fun TimerTab(modifier: Modifier = Modifier) {
 
         if (!isRunning) return@LaunchedEffect
 
-        if (remainingSeconds <= 0) {
-            val nextPhase = currentPhase.next()
-            val nextDurationMinutes = when (nextPhase) {
-                TimerPhase.FOCUS -> focusMinutes
-                TimerPhase.BREAK -> breakMinutes
-            }
+        val nextPhase = currentPhase.next()
+        val nextDurationMinutes = when (nextPhase) {
+            TimerPhase.FOCUS -> focusMinutes
+            TimerPhase.BREAK -> breakMinutes
+        }
 
-            if (nextDurationMinutes <= 0) {
-                isRunning = false
-                currentPhase = nextPhase
-                remainingSeconds = 0
-            } else {
-                currentPhase = nextPhase
-                remainingSeconds = nextDurationMinutes * 60
-            }
+        if (nextDurationMinutes <= 0) {
+            isRunning = false
+            currentPhase = nextPhase
+            remainingSeconds = 0
+        } else {
+            currentPhase = nextPhase
+            remainingSeconds = nextDurationMinutes * 60
         }
     }
 
@@ -233,10 +232,11 @@ fun TimerTab(modifier: Modifier = Modifier) {
                     fontWeight = FontWeight.SemiBold
                 )
                 LinearProgressIndicator(
-                    progress = progress.coerceIn(0f, 1f),
-                    modifier = Modifier.fillMaxWidth(),
-                    color = contentColor,
-                    trackColor = contentColor.copy(alpha = 0.2f)
+                progress = { progress.coerceIn(0f, 1f) },
+                modifier = Modifier.fillMaxWidth(),
+                color = contentColor,
+                trackColor = contentColor.copy(alpha = 0.2f),
+                strokeCap = ProgressIndicatorDefaults.LinearStrokeCap,
                 )
                 Text(
                     text = currentPhase.message,
